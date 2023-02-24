@@ -63,7 +63,7 @@ input_data = dict(
         "customer_id": str(),
         "customer_name": str(),
         "session_name": str(),
-        "archive_location": "/Volumes/capturingtimephoto/Photos/Archives",
+        "archive_location": DEFAULT_ARCHIVE_ROOT,
     }
 )
 # input_data = dict(
@@ -205,7 +205,6 @@ def get_inputs(output_datep_fmt: str = DEFAULT_OUTPUT_DATEPARSE_FMT):
     """
     inputs_confirmed = False
     while not inputs_confirmed:
-
         # Date of Shoot
         msg = "What was the Date of this shoot?"
 
