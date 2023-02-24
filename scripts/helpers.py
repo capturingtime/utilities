@@ -6,8 +6,10 @@ from tqdm import tqdm
 from progressbar import Bar
 import shutil
 
-DEFAULT_ARCHIVE_ROOT = "/Volumes/capturingtimephoto/Photos/Archives"
-DEFAULT_ARCHIVE_PREVIEW_ROOT = "/Volumes/capturingtimephoto/Photos/Archives/Previews"
+# DEFAULT_ARCHIVE_ROOT = "/Volumes/capturingtimephoto/Photos/Archives"
+# DEFAULT_ARCHIVE_PREVIEW_ROOT = "/Volumes/capturingtimephoto/Photos/Archives/Previews"
+DEFAULT_ARCHIVE_ROOT = "/mnt/d/archives"
+DEFAULT_ARCHIVE_PREVIEW_ROOT = "/mnt/d/archives/Previews"
 DEFAULT_TEMP_DIR = "/tmp"
 
 
@@ -34,13 +36,15 @@ def extract_tiff(file):
     imageio.imsave(f"{path}.tiff", rgb)
 
 
-def extract_jpeg(file):
+def extract_jpeg(file, dst: str = None):
     """Makes a copy of the embedded jpeg in the same dir (non-destructive)"""
     file_details = parse_path(file)
     abs_path = file_details["abs_path"]
     name_part = file_details["name_part"]
     path_part = file_details["path_part"]
-    jpeg_path = f"{path_part}/{name_part}.jpeg"
+    if not dst:
+        dst = path_part
+    jpeg_path = f"{dst}/{name_part}.jpeg"
     with rawpy.imread(abs_path) as raw:
         # raises rawpy.LibRawNoThumbnailError if thumbnail missing
         # raises rawpy.LibRawUnsupportedThumbnailError if unsupported format
@@ -89,18 +93,21 @@ def extract_archive(archive_path):
     return dst
 
 
-def gen_preview_from_archive(archive_path):
+def gen_preview_from_archive(archive_path, output_location):
     """Retrieves an archive and extracts all previews to
     Archives/Previews/{Archive_Name}/{Image_Name}
     """
     file_details = parse_path(archive_path)
     src = file_details["abs_path"]
-    dst = f"{DEFAULT_TEMP_DIR}/{file_details['file_name']}"
-    file_copy(src, dst)
-    extracted_dir = extract_archive(dst)
+    # dst = f"{DEFAULT_TEMP_DIR}/{file_details['file_name']}"
+    # file_copy(src, dst)
+    extracted_dir = extract_archive(src)
     file_list = os.listdir(extracted_dir)
     for f in file_list:
         f = f"{extracted_dir}/{f}"
         extract_jpeg(f)
         os.remove(f)
-    return extracted_dir
+
+    preview_dst = f"{output_location}/{file_details['name_part']}"
+    p_src, p_dst = dir_move(extracted_dir, preview_dst)
+    return p_dst

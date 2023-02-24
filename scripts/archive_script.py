@@ -7,17 +7,25 @@
     Security:       No Current Security considerations need to be made
     Usage:          Execute the script, Follow the script prompts
 """
+# https://stackoverflow.com/questions/61025973/how-to-avoid-arrow-key-values-in-python-input  # noqa: E501, F401
 import os
+import rawpy  # https://pypi.org/project/rawpy/
+import imageio
 import py7zr
-import readline  # https://stackoverflow.com/questions/61025973/how-to-avoid-arrow-key-values-in-python-input  # noqa: E501, F401
+import shutil
 
 from datetime import datetime
-from progress.bar import Bar
+from progressbar import Bar
 from tqdm import tqdm
 
+"""
+python3 -m pip install imageio==2.25.1 progressbar==2.5 py7zr==0.20.4 tqdm==4.64.1 rawpy==0.18.0
+"""
 
 DEFAULT_OUTPUT_DATEPARSE_FMT = "%Y%b%d"  # YYYYSepDD (2022Sep15)
 DEFAULT_ARCHIVE_ROOT = "/Volumes/capturingtimephoto/Photos/Archives"
+DEFAULT_ARCHIVE_PREVIEW_ROOT = "/Volumes/capturingtimephoto/Photos/Archives/Previews"
+DEFAULT_TEMP_DIR = "/tmp"
 VALID_DATEPARSE_FORMATS = [  # Attempted in top down order (Most specific -> Least)
     # https://strftime.org/
     "%Y%B%d",  # 2022September02
@@ -315,6 +323,10 @@ if __name__ == "__main__":
     temp_archive_loc = f"/tmp/{archive_full_name}"
 
     file_list = os.listdir(session_path)
+    for f in file_list:
+        p_dst = f"{DEFAULT_ARCHIVE_PREVIEW_ROOT}/{session_archive_name}"
+        extract_jpeg(f, p_dst)
+
     # with py7zr.SevenZipFile(temp_archive_loc, "a") as archive:
     #     for file in file_list:
     #         file_abs_path = f"{session_path}/{file}"
