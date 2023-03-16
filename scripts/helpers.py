@@ -36,6 +36,7 @@ def extract_tiff(file):
     imageio.imsave(f"{path}.tiff", rgb)
 
 
+# Doesnt work for too large of files, need to make this extension aware and catch exceptions
 def extract_jpeg(file, dst: str = None):
     """Makes a copy of the embedded jpeg in the same dir (non-destructive)"""
     file_details = parse_path(file)
