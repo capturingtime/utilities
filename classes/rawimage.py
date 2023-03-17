@@ -22,17 +22,22 @@ class RawImage(File):
         self.postprocess = self.raw.postprocess()
 
     # Do we load dst as File() also to better control operations?
-    def save_preview(self, dst):
+    def save_preview(self, dst: File):
         """ """
-        # try:
-        #     dst = File(dst)
-        # except FileNotFoundError:
+        if dst.exists and dst.size > 0:
+            msg = f"The provided destination file: {dst.abspath} already exists and is not empty"
+            raise FileExistsError(msg)
+        elif dst.exists and dst.size == 0:
+            dst.delete(confirm=True)
 
-        # if dst.isdir:
+        # Final check
+        if dst.exists:
+            msg = f"The provided destination file: {dst.abspath} exists and couldn't be deleted"
+            raise FileExistsError(msg)
 
         if self.preview.format == rawpy.ThumbFormat.JPEG:
-            with open(dst.abspath, "wb") as f:
-                f.write(self.preview.data)
+            with open(dst.abspath, "wb") as j:
+                j.write(self.preview.data)
             self.log.debug(f"Preview JPEG saved to {dst}")
 
         elif self.preview.format == rawpy.ThumbFormat.BITMAP:
@@ -41,10 +46,10 @@ class RawImage(File):
             self.log.debug(f"Preview JPEG saved to {dst}")
 
         else:
-            msg = f"Unable to save preview from RAW Image, Unsupported thumb type: {self.preview}"
+            msg = f"Unable to save preview from RAW Image, Unsupported thumb type: {self.preview.format}"
             self.log.error(msg)
             raise TypeError(msg)
 
-    def save_tiff(self, dst):
-        """Extract and save as .tiff"""
-        imageio.imsave(dst, self.postprocess)
+    def save_tiff(self, dst: File):
+        """Save RAW as .tiff"""
+        imageio.imsave(dst.abspath, self.postprocess)

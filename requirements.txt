@@ -1,2 +1,3 @@
 rawpy
 imageio
+tqdm
