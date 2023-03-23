@@ -46,7 +46,10 @@ class RawImage(File):
             self.log.debug(f"Preview JPEG saved to {dst}")
 
         else:
-            msg = f"Unable to save preview from RAW Image, Unsupported thumb type: {self.preview.format}"
+            msg = (
+                "Unable to save preview from RAW Image, "
+                f"Unsupported thumb type: {self.preview.format}"
+            )
             self.log.error(msg)
             raise TypeError(msg)
 

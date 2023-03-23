@@ -1,3 +1,4 @@
 rawpy
 imageio
 tqdm
+boto

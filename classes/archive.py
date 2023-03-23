@@ -1,10 +1,13 @@
 from .file import File, Dir
 import py7zr
 import logging
+from yaspin import yaspin, Spinner
 
 
-from tqdm import tqdm
-from progressbar import Bar
+# from .callback import py7zrCallBackWrapperExtract, py7zrCallBackWrapperArchive
+
+# from progressbar import Bar
+spin = Spinner(["\\", "|", "/", "-"], 250)
 
 
 class Archive(File):
@@ -23,6 +26,7 @@ class Archive(File):
         super().__init__(archive)
 
         self.archive = super().abspath
+        self.py7zr = py7zr
 
     @property
     def isarchive(self) -> bool:
@@ -44,7 +48,9 @@ class Archive(File):
             raise FileExistsError("File exists and is not an archive")
 
     def extract(
-        self, dst: Dir, file_list: list = list(), progress_bar: bool = False
+        self,
+        dst: Dir,
+        file_list: list = list(),
     ) -> bool:
         """Extracts the contents of this archive (if exists) to the destination directory"""
         if not isinstance(dst, Dir):
@@ -52,29 +58,18 @@ class Archive(File):
         if not dst.isdir:
             raise NotADirectoryError
 
-        with py7zr.SevenZipFile(super().abspath, "r") as a:
-            extract_list = list(file_list if file_list else a.getnames())
-            if progress_bar:
-                print(
-                    "Progressbar is disabled for now, "
-                    "archive is extracting silently in the background. "
-                    'You\'ll get a "True" when its done.'
+        with yaspin(
+            spin, text="Extracting Archive...", color="cyan", timer=True
+        ) as spinner:
+            with py7zr.SevenZipFile(super().abspath, "r") as a:
+                extract_list = list(file_list if file_list else a.getnames())
+                # a.extract(path=dst.directory, targets=extract_list)
+                a._extract(
+                    path=dst.directory,
+                    targets=extract_list,
+                    # callback=py7zrCallBackWrapperExtract,
                 )
-                a.extract(path=dst.directory, targets=extract_list)
-                # # This logic works, but is painfully slow. orders of magnitude slow
-                # total = len(a.getnames())
-                # # raise NotImplementedError
-                # with tqdm(
-                #     ncols=60,
-                #     total=total,
-                #     bar_format="{l_bar}{bar} | Remaining: {remaining}",
-                # ) as pbar:
-                #     for f in a.getnames():
-                #         a.extract(path=dst.abspath, targets=[f])
-                #         pbar.update(1)
-                #         a.reset()  # https://py7zr.readthedocs.io/en/latest/api.html#py7zr.SevenZipFile.extract  # noqa: E501
-            else:
-                a.extract(path=dst.directory, targets=extract_list)
+            spinner.ok()
 
         return dst.exists
 
@@ -82,7 +77,6 @@ class Archive(File):
         self,
         src: list([Dir, File]),
         folder_name: str = str(),
-        progress_bar: bool = False,
     ) -> bool:
         """Adds a File or Dir to this archive"""
         type_err_msg = (
@@ -90,7 +84,10 @@ class Archive(File):
             f"type {Dir} or {File}. Provided: {type(src)}"
         )
         if not isinstance(src, list):
-            raise TypeError(type_err_msg)
+            if isinstance(src, (Dir, File)):
+                src = list([src])
+            else:
+                raise TypeError(type_err_msg)
         if not all(isinstance(i, (File, Dir)) for i in src):
             raise TypeError(type_err_msg)
         created = self._create() if not self.isarchive else True
@@ -101,32 +98,23 @@ class Archive(File):
 
         if folder_name:
             folder_name = folder_name.rstrip("\\/")
-        with py7zr.SevenZipFile(super().abspath, "w") as a:
-            if progress_bar:
-                raise NotImplementedError
-                c = len(src)
-                # with tqdm(  # Draws the Bar
-                #     ncols=60,
-                #     total=c,
-                #     bar_format="{l_bar}{bar} | Remaining: {remaining}",
-                # ) as pbar:
-                bar = Bar(
-                    "Archiving Files:",
-                    suffix="%(index)d/%(max)d ETA: %(eta)ds (Elapsed: %(elapsed)ds)",
-                    max=c,
-                )
-            for f in src:
-                prefix = f"{folder_name}/" if folder_name else ""
+        with yaspin(
+            spin, text="Adding files to Archive...", color="cyan", timer=True
+        ) as spinner:
+            with py7zr.SevenZipFile(super().abspath, "w") as a:
+                for f in src:
+                    prefix = f"{folder_name}/" if folder_name else ""
 
-                if type(f) == File:
-                    a.write(f.abspath, f"{prefix}{f.filename}")
-                elif type(f) == Dir:
-                    a.writeall(f.abspath, f"{prefix}{f.dirname}")
-                else:
-                    # This should have been caught in the earlier checks
-                    raise TypeError(type_err_msg)
-                if progress_bar:
-                    bar.next()
+                    if type(f) == File:
+                        a.write(f.abspath, f"{prefix}{f.filename}")
+                    elif type(f) == Dir:
+                        a.writeall(f.abspath, f"{prefix}{f.dirname}")
+                    else:
+                        # This should have been caught in the earlier checks
+                        raise TypeError(type_err_msg)
+            spinner.ok()
+
+        return True
 
     def _create(self) -> bool:
         """Creates the archive if it doesn't already exist"""
