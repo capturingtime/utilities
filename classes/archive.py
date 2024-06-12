@@ -1,4 +1,4 @@
-from .file import File, Dir
+from file import File, Dir
 import py7zr
 import logging
 from yaspin import yaspin, Spinner

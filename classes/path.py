@@ -1,6 +1,7 @@
 from abc import ABC, abstractmethod
 import os
 
+
 class Path(ABC):
     """A Class to define a Path, inherited by File, Dir"""
 
@@ -47,18 +48,37 @@ class Path(ABC):
     def size(self) -> int:
         return os.path.getsize(self.__path)
 
+    @property
+    def __str__(self) -> str:
+        return self.abspath
+
+    @property
+    def all_path_attr(self) -> dict:
+        return {
+            "path": self.path,
+            "abspath": self.abspath,
+            "basename": self.basename,
+            "dirname": self.dirname,
+            "exists": self.exists,
+            "isdir": self.isdir,
+            "isfile": self.isfile,
+            "realpath": self.realpath,
+            "relpath": self.relpath,
+            "size": self.size if self.exists else 0,
+        }
+
     @abstractmethod
     def copy(self):
-        pass
+        raise NotImplementedError
 
     @abstractmethod
     def delete(self):
-        pass
+        raise NotImplementedError
 
     @abstractmethod
     def create(self):
-        pass
+        raise NotImplementedError
 
     @abstractmethod
     def mv(self):
-        pass
+        raise NotImplementedError

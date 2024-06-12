@@ -1,6 +1,6 @@
 import rawpy
 import imageio
-from .file import File
+from file import File
 import logging
 
 
