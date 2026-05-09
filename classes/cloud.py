@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from bucket import Bucket
+from .bucket import Bucket
 
 
 DEFAULT_CLOUD = "aws"

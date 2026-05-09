@@ -1,5 +1,5 @@
-from cloud import Cloud
-from s3 import S3
+from .cloud import Cloud
+from .s3 import S3
 
 archive_raw = ("ctp-archive-raw", "archive")
 archive_preview = ("ctp-archive-preview", "meta_archive")

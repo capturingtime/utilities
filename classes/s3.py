@@ -1,6 +1,6 @@
-from bucket import Bucket
-from file import File
-from object import Object
+from .bucket import Bucket
+from .file import File
+from .object import Object
 from botocore.exceptions import (
     ClientError,
 )

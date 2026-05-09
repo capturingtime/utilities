@@ -1,6 +1,6 @@
 """
 from git.ctp.utilities.classes.tave import Tave
-t = Tave("550fedac-2c50-098c-8dd7-45e100d2-12f9127b28ce")
+tave = Tave("550fedac-2c50-098c-8dd7-45e100d2-12f9127b28ce")
 
 Also, make a requests.Session() client that any CRM should reference to handle underlying HTTP
 
@@ -97,13 +97,20 @@ class Tave:
             # Add logging WARN about params being ignored
             pass
 
+        # Clean this up, checks if path string provided matches a valid endpoint
         spec_path = re.sub(r"[a-z0-9]{26}", "{id}", path) if id_in_path(path) else path
         spec_ref = self._api.get_spec.get("paths").get(spec_path, None)
 
         if spec_path not in self._api.get_paths:
-            raise ValueError(
-                f"path must be one of {[v for v in self._api.get_paths]}. Got: {spec_path}"
+            spec_path = (
+                re.sub(r"[a-z0-9]{26}", "{jobId}", path) if id_in_path(path) else path
             )
+            spec_ref = self._api.get_spec.get("paths").get(spec_path, None)
+            if spec_path not in self._api.get_paths:
+                raise ValueError(
+                    f"path must be one of {[v for v in self._api.get_paths]}. Got: {spec_path}"
+                )
+        #######
 
         if method.lower() not in spec_ref.keys():
             raise ValueError(
@@ -126,5 +133,5 @@ class Tave:
         return self._api.send(req).json()
 
     def delete(self, path: str) -> dict:
-        req = self._format_req("delete", path)
+        req = self._format_req("DELETE", path)
         return self._api.send(req).json()
