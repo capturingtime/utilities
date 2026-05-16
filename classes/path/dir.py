@@ -1,7 +1,7 @@
 from __future__ import annotations  # https://stackoverflow.com/a/55344418
 
 import os
-from .path import Path
+from ..abstract.path import Path
 
 
 class Dir(Path):

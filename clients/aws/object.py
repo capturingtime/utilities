@@ -1,4 +1,4 @@
-from .bucketitem import BucketItem
+from ...classes.abstract.bucketitem import BucketItem
 import boto3
 from botocore.response import StreamingBody
 from datetime import datetime

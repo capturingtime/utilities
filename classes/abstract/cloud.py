@@ -1,15 +1,16 @@
 from abc import ABC, abstractmethod
-from .bucket import Bucket
+
+# from .bucket import Bucket
 
 
-DEFAULT_CLOUD = "aws"
+DEFAULT_CLOUD = "Unknown Cloud Provider"
 
-REQUIRED_ATTRIBUTE_TYPES: dict = {
-    "archive_raw": Bucket,
-    "archive_preview": Bucket,
-    "archive_thumb": Bucket,
-    "archive_sidecar": Bucket,
-}
+# REQUIRED_ATTRIBUTE_TYPES: dict = {
+#     "archive_raw": Bucket,
+#     "archive_preview": Bucket,
+#     "archive_thumb": Bucket,
+#     "archive_sidecar": Bucket,
+# }
 
 
 class Cloud(ABC):
@@ -35,7 +36,7 @@ class Cloud(ABC):
         return self.__cloud
 
     @abstractmethod
-    def load_bucket(self, name: str, bucket_type: str):
+    def load_bucket(self, name: str, bucket_role: str):
         raise NotImplementedError
 
     # @property

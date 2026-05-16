@@ -1,22 +1,28 @@
 from abc import ABC, abstractmethod
 from typing import List
 
-VALID_BUCKET_TYPES: List[str] = [
+VALID_BUCKET_ROLES: List[str] = [
     "archive",  # This bucket is an actual archive with files for Long Term Storage
     "meta_archive",  # This bucket is for files that are related to archives, but not for LTS
     "standard",  # This bucket is just a standard bucket with no special considerations
 ]
-DEFAULT_BUCKET_TYPE = "standard"
+DEFAULT_BUCKET_ROLE = "standard"
 
 
 class Bucket(ABC):
-    def __init__(self, name: str, bucket_type: str = DEFAULT_BUCKET_TYPE):
+    def __init__(
+        self,
+        name: str,
+        bucket_role: str = DEFAULT_BUCKET_ROLE,
+        bucket_desc: str = "A Bucket to store files",
+    ):
         self.__name = name
-        self.__bucket_type = bucket_type
+        self.__bucket_role = bucket_role
+        self.__bucket_desc = bucket_desc
 
-        if bucket_type not in VALID_BUCKET_TYPES:
+        if bucket_role not in VALID_BUCKET_ROLES:
             raise ValueError(
-                f"bucket_type must be one of {VALID_BUCKET_TYPES}. Got: {bucket_type}"
+                f"bucket_role must be one of {VALID_BUCKET_ROLES}. Got: {bucket_role}"
             )
 
     @property
@@ -24,8 +30,12 @@ class Bucket(ABC):
         return self.__name
 
     @property
-    def bucket_type(self):
-        return self.__bucket_type
+    def bucket_role(self):
+        return self.__bucket_role
+
+    @property
+    def bucket_desc(self):
+        return self.__bucket_desc
 
     @abstractmethod
     def get_item(self, key: str):

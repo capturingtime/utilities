@@ -1,5 +1,5 @@
 from __future__ import annotations  # https://stackoverflow.com/a/55344418
-from .path import Path
+from ..abstract.path import Path
 from tqdm import tqdm
 import os
 import hashlib

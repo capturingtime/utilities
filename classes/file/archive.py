@@ -1,10 +1,11 @@
-from file import File, Dir
+from ..path.file import File
+from ..path.dir import Dir
 import py7zr
 import logging
 from yaspin import yaspin, Spinner
 
 
-# from .callback import py7zrCallBackWrapperExtract, py7zrCallBackWrapperArchive
+# from .archive_callback import py7zrCallBackWrapperExtract, py7zrCallBackWrapperArchive
 
 # from progressbar import Bar
 spin = Spinner(["\\", "|", "/", "-"], 250)

@@ -1,5 +1,5 @@
-from .bucket import Bucket
-from .file import File
+from ...classes.abstract.bucket import Bucket
+from ...classes.path.file import File
 from .object import Object
 from botocore.exceptions import (
     ClientError,
@@ -7,7 +7,7 @@ from botocore.exceptions import (
 import boto3
 from copy import copy
 
-BUCKET_TYPE_MAP: dict = {
+BUCKET_ROLE_MAP: dict = {
     "archive": "GLACIER_IR",
     "meta_archive": "STANDARD_IA",
     "standard": None,
@@ -20,8 +20,8 @@ HASH_PROPERTY_NAME = "sha256"
 class S3(Bucket):
     """A Class to define an S3 Bucket"""
 
-    def __init__(self, name: str, bucket_type: str):
-        super().__init__(name=name, bucket_type=bucket_type)
+    def __init__(self, name: str, **kwargs):
+        super().__init__(name=name, **kwargs)
         self.__lfc_cfg: list = list()
         self.__location: str = str()
         self.__objects: dict = dict()
@@ -67,15 +67,15 @@ class S3(Bucket):
             # Grabs list of bucket rules in the lifecycle config
             self.__lfc_cfg = lfc_cfg["Rules"]
 
-        if super().bucket_type != "standard":
+        if super().bucket_role != "standard":
             result = False
             for rule in lfc_cfg["Rules"]:
                 for t in rule["Transitions"]:
-                    if t["StorageClass"] == BUCKET_TYPE_MAP.get(super().bucket_type):
+                    if t["StorageClass"] == BUCKET_ROLE_MAP.get(super().bucket_role):
                         result = True
 
             if not result:
-                msg = f"bucket_type must be one of {BUCKET_TYPE_MAP.keys()} Got {super().bucket_type}"  # noqa: E501
+                msg = f"bucket_role must be one of {BUCKET_ROLE_MAP.keys()} Got {super().bucket_role}"  # noqa: E501
                 raise ValueError(msg)
 
     def _check_bucket_exists(self) -> None:
