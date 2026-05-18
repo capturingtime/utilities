@@ -1,10 +1,12 @@
 from abc import ABC, abstractmethod
 from typing import List
 
+# Roles map to S3 storage class tiers defined in BUCKET_ROLE_MAP in clients/aws/s3.py.
+# Validated on Bucket construction so misconfiguration fails fast at init, not on first upload.
 VALID_BUCKET_ROLES: List[str] = [
-    "archive",  # This bucket is an actual archive with files for Long Term Storage
-    "meta_archive",  # This bucket is for files that are related to archives, but not for LTS
-    "standard",  # This bucket is just a standard bucket with no special considerations
+    "archive",  # RAW image files — long-term cold storage (GLACIER_IR)
+    "meta_archive",  # Previews, thumbnails, sidecars — infrequently accessed (STANDARD_IA)
+    "standard",  # General-purpose; no storage-class lifecycle enforced
 ]
 DEFAULT_BUCKET_ROLE = "standard"
 

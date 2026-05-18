@@ -5,21 +5,11 @@ import logging
 from yaspin import yaspin, Spinner
 
 
-# from .archive_callback import py7zrCallBackWrapperExtract, py7zrCallBackWrapperArchive
-
-# from progressbar import Bar
 spin = Spinner(["\\", "|", "/", "-"], 250)
 
 
 class Archive(File):
     """A Class to define an Archive, inherits File"""
-
-    """ Ideas
-        - Instantiation should check if its an archive yet, and if its empty with a property
-        - Create method to actually make an empty archive file, update property
-        - add() checks if create() has been ran, create() if False
-        -
-    """
 
     def __init__(
         self, archive: str, logger: logging.Logger = logging.getLogger(__name__)
@@ -31,13 +21,16 @@ class Archive(File):
 
     @property
     def isarchive(self) -> bool:
+        """Returns True only if the file exists and py7zr can open it as a valid 7z archive."""
         if not super().exists:
             return False
         try:
             a: str = getattr(
                 py7zr.SevenZipFile(super().abspath, "r"), "filename", str()
             )
-        except (FileNotFoundError, OSError):
+        except (FileNotFoundError, OSError, py7zr.Bad7zFile):
+            # Bad7zFile is raised by newer py7zr versions for corrupted/non-archive files;
+            # it does not inherit from OSError so must be caught separately
             return False
         return True if a else False
 
@@ -64,11 +57,9 @@ class Archive(File):
         ) as spinner:
             with py7zr.SevenZipFile(super().abspath, "r") as a:
                 extract_list = list(file_list if file_list else a.getnames())
-                # a.extract(path=dst.directory, targets=extract_list)
                 a._extract(
                     path=dst.directory,
                     targets=extract_list,
-                    # callback=py7zrCallBackWrapperExtract,
                 )
             spinner.ok()
 
@@ -102,16 +93,16 @@ class Archive(File):
         with yaspin(
             spin, text="Adding files to Archive...", color="cyan", timer=True
         ) as spinner:
-            with py7zr.SevenZipFile(super().abspath, "w") as a:
+            # "a" = append; "w" would truncate the archive on every call
+            with py7zr.SevenZipFile(super().abspath, "a") as a:
                 for f in src:
                     prefix = f"{folder_name}/" if folder_name else ""
 
                     if type(f) == File:
-                        a.write(f.abspath, f"{prefix}{f.filename}")
+                        a.write(f.abspath, f"{prefix}{f.basename}")
                     elif type(f) == Dir:
-                        a.writeall(f.abspath, f"{prefix}{f.dirname}")
+                        a.writeall(f.abspath, f"{prefix}{f.basename}")
                     else:
-                        # This should have been caught in the earlier checks
                         raise TypeError(type_err_msg)
             spinner.ok()
 
@@ -122,11 +113,10 @@ class Archive(File):
         if self.isarchive:
             return True
         if super().exists:
-            # If this catches, it means there is a file but it not an archive
+            # A file exists at this path but is not a valid archive — refuse to overwrite
             raise FileExistsError("An attempt to create a non-existant archive failed")
 
         with py7zr.SevenZipFile(super().abspath, "w"):
-            pass  # by putting pass here,
-            # we effectively create an empty archive, and gracefully close it.
+            pass  # open in write mode and immediately close to produce an empty archive
 
         return self.isarchive

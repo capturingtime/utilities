@@ -48,8 +48,9 @@ class Path(ABC):
     def size(self) -> int:
         return os.path.getsize(self.__path)
 
-    @property
     def __str__(self) -> str:
+        # Must be a plain method, not @property — Python resolves __str__ via type(obj).__str__
+        # and a property descriptor at the class level is not callable in that context.
         return self.abspath
 
     @property

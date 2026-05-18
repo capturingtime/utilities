@@ -3,6 +3,7 @@ from abc import ABC, abstractmethod
 
 class BucketItem(ABC):
     def __init__(self, item: str):
+        # item is the object key — the full path within the bucket (e.g. "shoots/2024/img.jpg")
         self.__item = item
 
     @property

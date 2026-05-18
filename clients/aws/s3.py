@@ -62,7 +62,8 @@ class S3(Bucket):
                 print(f"Access denied, {errcode}: {err}")
             else:
                 print(f"Error in request, {errcode}: {err}")
-            # raise  # No raise, its ok if this fails.
+            # A missing lifecycle config is acceptable for standard buckets; skip validation
+            return
         else:
             # Grabs list of bucket rules in the lifecycle config
             self.__lfc_cfg = lfc_cfg["Rules"]
@@ -148,9 +149,9 @@ class S3(Bucket):
 
         # implicit else:
         params: dict = {"Bucket": super().name, "Key": key}
+        # ChecksumAlgorithm must be uppercase for AWS SDK; SHA256 triggers server-side verification
         extra_args: dict = {
-            "ChecksumAlgorithm": HASH_PROPERTY_NAME,
-            # "Metadata": {}
+            "ChecksumAlgorithm": "SHA256",
         }
 
         result: bool = False
@@ -163,6 +164,26 @@ class S3(Bucket):
                 f"body type must be one of {[File, bytes, str]} got: {type(body)}"
             )
         return result
+
+    def __put_file(self, body: File, params: dict, **kwargs) -> bool:
+        """Upload a local File to S3 using multipart-capable upload_file."""
+        extra = {k: v for k, v in kwargs.items() if k in ("ChecksumAlgorithm",)}
+        self.__s3_client.upload_file(
+            body.abspath,
+            params["Bucket"],
+            params["Key"],
+            ExtraArgs=extra if extra else None,
+        )
+        return True
+
+    def __put_bytes(self, body: bytes, params: dict, **kwargs) -> bool:
+        """Upload a raw bytes payload to S3 using put_object."""
+        self.__s3_client.put_object(
+            Bucket=params["Bucket"],
+            Key=params["Key"],
+            Body=body,
+        )
+        return True
 
     def list_items(self) -> list:
         # https://boto3.amazonaws.com/v1/documentation/api/latest/reference/services/s3/client/list_objects_v2.html
@@ -180,9 +201,8 @@ class S3(Bucket):
             raise err
 
         while truncated:
-            # ctoken is a little wonkey logic wise, but reduces code.
-            # ctoken is set after we know we need to request the 'next page', from the previous run
-            ctoken: str = response["ContinuationToken"]
+            # AWS response key is NextContinuationToken; ContinuationToken is the *request* param
+            ctoken: str = response["NextContinuationToken"]
             response = self.__s3_client.list_objects_v2(
                 **params, ContinuationToken=ctoken
             )

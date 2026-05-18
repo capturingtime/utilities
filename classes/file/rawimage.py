@@ -5,9 +5,10 @@ import logging
 
 
 class RawImage(File):
-    """
-    Method Ideas:
-        - For files, use a Path object to normalize, and add a helper func to return a path object from path string
+    """Wraps a camera RAW file for preview and TIFF export.
+
+    rawpy.imread() is expensive — it decodes the full RAW at init. Cache this instance
+    rather than re-instantiating it when exporting multiple formats from the same file.
     """
 
     def __init__(
@@ -17,20 +18,22 @@ class RawImage(File):
 
         self.log = logger
         self.file_path: str = raw_file
-        self.raw: rawpy._rawpy.RawPy = rawpy.imread()
+        self.raw: rawpy._rawpy.RawPy = rawpy.imread(raw_file)
         self.preview = self.raw.extract_thumb()
         self.postprocess = self.raw.postprocess()
 
-    # Do we load dst as File() also to better control operations?
     def save_preview(self, dst: File):
-        """ """
+        """Extract and save the embedded preview image to dst.
+
+        Prefers the embedded JPEG thumbnail (lossless copy of camera-generated preview).
+        Falls back to converting the BITMAP preview via imageio when JPEG is unavailable.
+        """
         if dst.exists and dst.size > 0:
             msg = f"The provided destination file: {dst.abspath} already exists and is not empty"
             raise FileExistsError(msg)
         elif dst.exists and dst.size == 0:
             dst.delete(confirm=True)
 
-        # Final check
         if dst.exists:
             msg = f"The provided destination file: {dst.abspath} exists and couldn't be deleted"
             raise FileExistsError(msg)
@@ -54,5 +57,5 @@ class RawImage(File):
             raise TypeError(msg)
 
     def save_tiff(self, dst: File):
-        """Save RAW as .tiff"""
+        """Save the full-resolution postprocessed RAW as a TIFF."""
         imageio.imsave(dst.abspath, self.postprocess)

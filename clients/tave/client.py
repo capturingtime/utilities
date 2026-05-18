@@ -129,7 +129,7 @@ class Tave:
         return self._api.send(req).json()
 
     def put(self, path: str, body: dict) -> dict:
-        req = self._format_req("POST", path)
+        req = self._format_req("PUT", path)
         return self._api.send(req).json()
 
     def delete(self, path: str) -> dict:
