@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "ctp-utilities"
-version = "0.2.0"
+version = "0.2.1"
 description = "Cloud-provider-agnostic file and storage abstractions for Capturing Time Photography"
 authors = [{ name = "Ian Price", email = "ian@capturingtimephoto.net" }]
 license = { text = "MIT" }
@@ -27,9 +27,21 @@ dev = [
     "pytest-mock>=3.10.0",
 ]
 
-[tool.setuptools.packages.find]
-where = [".."]
-include = ["utilities*"]
+[tool.setuptools]
+include-package-data = true
+packages = [
+    "utilities",
+    "utilities.classes",
+    "utilities.classes.abstract",
+    "utilities.classes.file",
+    "utilities.classes.path",
+    "utilities.clients",
+    "utilities.clients.archive",
+    "utilities.clients.aws",
+    "utilities.clients.tave",
+    "utilities.tests",
+]
+package-dir = { "utilities" = "." }
 
 [tool.black]
 line-length = 88
