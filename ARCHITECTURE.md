@@ -22,7 +22,7 @@ are injected at initialization time.
 ```
 ┌────────────────────────────────────────────────────────────┐
 │                     Application Layer                       │
-│          photobooth · archive_script · run_booth            │
+│       photobooth.booth_main · archive_script · scripts.*    │
 └──────────────────────────┬─────────────────────────────────┘
                            │
 ┌──────────────────────────▼─────────────────────────────────┐
@@ -233,23 +233,35 @@ managed within this library:
 
 ## Making `ctp-utilities` a Dependency
 
-Install locally (editable, for development of photobooth alongside utilities):
+The canonical distribution channel is **pip install from a git tag** (public repo, no
+PyPI listing). Pin a specific version in a consumer's `pyproject.toml`:
+
+```toml
+dependencies = [
+    "ctp-utilities @ git+https://github.com/capturingtime/utilities.git@v0.4.0",
+]
+```
+
+For local development of a consumer alongside utilities, an editable install still
+works:
 
 ```bash
 pip install -e /path/to/utilities
 ```
 
-Pin a git revision in `requirements.txt`:
+### Optional `[raw]` extra
 
-```
--e git+https://github.com/your-org/ctp-utilities@main#egg=ctp-utilities
+RAW image processing (`rawpy`, `imageio` — used by `classes/file/rawimage.py` and
+the `scripts/` archive tools) is gated behind an optional `[raw]` extra. The base
+install pulls only the deps needed by the AWS / file / Tave clients.
+
+```bash
+pip install "ctp-utilities[raw] @ git+https://github.com/capturingtime/utilities.git@v0.4.0"
 ```
 
-Or reference it by local path in `photobooth/setup.py`:
-
-```python
-install_requires=["ctp-utilities @ file:///path/to/utilities"]
-```
+Reason: `rawpy` has no wheel for armv7 + Python 3.7 (the photobooth Pi target), so
+shipping it as a hard dep blocks the booth install. Consumers that don't import
+`rawimage` or the `scripts/` modules need nothing beyond the base install.
 
 ---
 
