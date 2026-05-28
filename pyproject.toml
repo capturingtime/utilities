@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "ctp-utilities"
-version = "0.4.1"
+version = "0.5.0"
 description = "Cloud-provider-agnostic file and storage abstractions for Capturing Time Photography"
 authors = [{ name = "Ian Price", email = "ian@capturingtimephoto.net" }]
 license = { text = "MIT" }
