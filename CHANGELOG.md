@@ -4,14 +4,38 @@ All notable changes to this project are documented here.
 Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/);
 versions follow [Semantic Versioning](https://semver.org/).
 
-## [Unreleased] — v0.4.1 (in progress)
+## [Unreleased] — v0.5.0 (in progress)
 
-Cleanup, minor fixes, and bug fixes following v0.4.0.
+No work has started yet. Open items carried from v0.4.1:
+- `clients/archive/client.py` is broken at import (`NameError:
+  DEFAULT_ARCHIVE_ROOT`) and looks like an unfinished CLI scaffold
+  rather than a client class. Either finish it (define the constant,
+  give the module a real consumer) or delete the entire
+  `clients/archive/` package. No production code depends on it.
 
-### Planned
-- Bump `version` to `0.4.1.dev0` once any v0.4.1 code change lands.
-- Follow-up cleanup of any rough edges surfaced by the photobooth + RAW
-  archive consumers on v0.4.0.
+## [v0.4.1] — 2026-05-27
+
+Test-coverage release. No runtime behavior change; consumers do not need
+to migrate. The version bump exists to keep `ctp-utilities` and
+`photobooth` version-coupled — photobooth v0.4.1 pins `@v0.4.1` for
+clarity, not because the runtime behavior diverged.
+
+### Added
+- **3 new test files** (29 new tests):
+  - `tests/test_archive_callback.py` — `py7zrCallBackWrapperExtract` with
+    and without progress bar; `py7zrCallBackWrapperArchive` inheritance.
+  - `tests/test_clients_tave.py` — `id_in_path` regex, `Client.request` /
+    `send`, `APISpecV2` spec fetch with mocked HTTP, `Tave` API-key
+    header + path/method validation + GET param encoding.
+  - `tests/test_rawimage.py` — smoke import (skipped if `rawpy` not
+    installed); invalid-file / missing-file constructor error. Replace
+    with fixture-based tests when a small `.CR3` ships with the repo.
+
+### Known issues (deferred to v0.5.0)
+- `clients/archive/client.py` is currently unimportable
+  (`DEFAULT_ARCHIVE_ROOT` is referenced but never defined). The module
+  looks like an unfinished CLI helper, not a client class. No tests
+  written; no production code depends on it. Fix or delete in v0.5.0.
 
 ## [v0.4.0] — 2026-05-20
 
